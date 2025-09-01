@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import useSWR from "swr"
 import { useEffect, useMemo, useState } from "react"
+import { Countdown } from "@/components/countdown"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -44,7 +45,7 @@ export default function DonorEmergency() {
     <main>
       <Navbar />
       <section className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="mb-4 text-2xl font-semibold text-gray-900">Emergency Requests</h1>
+        <h1 className="mb-4 text-3xl font-semibold text-gray-900">Emergency Requests</h1>
         <div className="mb-4 grid gap-2 md:grid-cols-3">
           <input
             className="h-10 rounded border px-3"
@@ -76,7 +77,9 @@ export default function DonorEmergency() {
                 <div>
                   <h3 className="font-medium text-gray-900">{r.bloodGroup}</h3>
                   <p className="text-sm text-gray-600">Pincode: {r.pincode}</p>
-                  <p className="text-xs text-gray-500">Expires: {new Date(r.expiresAt).toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">
+                    Expires in: <Countdown iso={r.expiresAt} />
+                  </p>
                 </div>
                 <button
                   onClick={() => volunteer(r.id)}

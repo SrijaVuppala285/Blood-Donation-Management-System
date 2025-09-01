@@ -1,10 +1,10 @@
 "use client"
 import Navbar from "@/components/navbar"
 import type React from "react"
-
 import Footer from "@/components/footer"
 import useSWR from "swr"
 import { useEffect, useMemo, useState } from "react"
+import { Countdown } from "@/components/countdown"
 
 const fetcherWithAuth = (url: string, token: string) =>
   fetch(url, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json())
@@ -64,7 +64,7 @@ export default function RecipientRequestsPage() {
     <main>
       <Navbar />
       <section className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="mb-4 text-2xl font-semibold text-gray-900">Emergency Requests</h1>
+        <h1 className="mb-4 text-3xl font-semibold text-gray-900">Emergency Requests</h1>
         <form onSubmit={createRequest} className="mb-6 grid gap-3 md:grid-cols-4">
           <input
             className="h-10 rounded border px-3"
@@ -101,7 +101,9 @@ export default function RecipientRequestsPage() {
                   <p className="text-sm text-gray-600">
                     Pincode: {r.pincode} • Status: {r.status}
                   </p>
-                  <span className="text-xs text-gray-500">Expires: {new Date(r.expiresAt).toLocaleString()}</span>
+                  <span className="text-xs text-gray-500">
+                    Expires in: <Countdown iso={r.expiresAt} />
+                  </span>
                   {r.donor && (
                     <div className="mt-2 rounded border bg-gray-50 p-2 text-sm text-gray-700">
                       <p className="font-medium">Volunteer details</p>

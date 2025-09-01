@@ -1,10 +1,10 @@
 "use client"
 import Navbar from "@/components/navbar"
 import type React from "react"
-
 import Footer from "@/components/footer"
 import useSWR from "swr"
 import { useEffect, useMemo, useState } from "react"
+import { Countdown } from "@/components/countdown"
 
 type AuthState = { token?: string; user?: { sub?: string } }
 
@@ -123,12 +123,12 @@ export default function CampaignsPage() {
     <main>
       <Navbar />
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="mb-4 text-2xl font-semibold text-gray-900 text-balance">Campaigns</h1>
+        <h1 className="mb-4 text-3xl font-semibold text-gray-900 text-balance">Campaigns</h1>
 
         <form onSubmit={createCampaign} className="mb-8 grid gap-3 md:grid-cols-6">
           <input
             className="h-10 rounded border px-3 md:col-span-2"
-            placeholder="Title"
+            placeholder="Campaign title"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
@@ -136,7 +136,7 @@ export default function CampaignsPage() {
           <input
             className="h-10 rounded border px-3 md:col-span-2"
             type="datetime-local"
-            placeholder="Date"
+            placeholder="Start date & time"
             value={form.date}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
             required
@@ -153,7 +153,7 @@ export default function CampaignsPage() {
             type="number"
             min={0}
             max={1000}
-            placeholder="Points"
+            placeholder="Reward points"
             value={form.points}
             onChange={(e) => setForm({ ...form, points: Number(e.target.value) })}
           />
@@ -179,29 +179,36 @@ export default function CampaignsPage() {
           {list.length === 0 && <p className="text-gray-600 text-sm">No campaigns yet.</p>}
           {list.map((c: any) => {
             const isOwner = creatorSub && c.creatorId === creatorSub
-            const remaining = formatRemaining(c.endsAt)
             return (
-              <div key={c.id} className="rounded border bg-white">
+              <div key={c.id} className="overflow-hidden rounded-lg border bg-white shadow-sm">
                 {c.imageUrl ? (
                   <img
-                    src={c.imageUrl || "/placeholder.svg"}
+                    src={c.imageUrl || "/placeholder.svg?height=160&width=600&query=campaign image"}
                     alt={c.title}
-                    className="h-40 w-full rounded-t object-cover"
+                    className="h-40 w-full object-cover"
                   />
                 ) : (
-                  <div className="h-40 w-full rounded-t bg-gray-100" />
+                  <img
+                    src={"/placeholder.svg?height=160&width=600&query=campaign image placeholder"}
+                    alt=""
+                    className="h-40 w-full object-cover"
+                  />
                 )}
                 <div className="p-4">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-medium text-gray-900">{c.title}</h3>
                       <p className="text-sm text-gray-600">
                         {new Date(c.date).toLocaleString()} • {c.location}
                       </p>
                     </div>
-                    <span className="text-sm text-emerald-600 font-medium">{c.points} pts</span>
+                    <div className="text-right">
+                      <span className="text-sm text-emerald-600 font-medium">{c.points} pts</span>
+                      <div className="text-xs text-gray-500">
+                        Ends in: <Countdown iso={c.endsAt} />
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">Ends in: {remaining}</div>
 
                   {editId === c.id && isOwner ? (
                     <div className="mt-3 grid gap-2 md:grid-cols-2">

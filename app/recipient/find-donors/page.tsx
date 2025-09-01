@@ -32,7 +32,8 @@ export default function FindDonorsPage() {
     <main>
       <Navbar />
       <section className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="mb-4 text-2xl font-semibold text-gray-900">Find Donors</h1>
+        <h1 className="mb-4 text-3xl font-semibold text-gray-900">Find Donors</h1>
+        <p className="text-sm text-gray-600 mb-3">All donors are shown by default. Use filters to narrow results.</p>
         <div className="mb-4 flex flex-col gap-3 md:flex-row">
           <input
             className="h-10 rounded border px-3"
