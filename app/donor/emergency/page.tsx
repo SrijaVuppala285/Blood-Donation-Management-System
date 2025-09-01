@@ -8,9 +8,15 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 export default function DonorEmergency() {
   const [pincode, setPincode] = useState("")
-  const { data, mutate } = useSWR(`/api/requests${pincode ? `?pincode=${pincode}` : ""}`, fetcher, {
-    refreshInterval: 8000,
-  })
+  const [bloodGroup, setBloodGroup] = useState("")
+  const query = () => {
+    const params = new URLSearchParams()
+    if (pincode) params.set("pincode", pincode)
+    if (bloodGroup) params.set("bloodGroup", bloodGroup)
+    const qs = params.toString()
+    return `/api/requests${qs ? `?${qs}` : ""}`
+  }
+  const { data, mutate } = useSWR(query, fetcher, { refreshInterval: 8000 })
   const list = useMemo(() => data?.requests || [], [data])
 
   const [auth, setAuth] = useState<{ token?: string } | null>(null)
@@ -29,7 +35,7 @@ export default function DonorEmergency() {
       mutate()
       alert("You volunteered. Recipient will be notified.")
     } else {
-      const d = await res.json()
+      const d = await res.json().catch(() => ({}))
       alert(d.error || "Failed")
     }
   }
@@ -39,13 +45,28 @@ export default function DonorEmergency() {
       <Navbar />
       <section className="mx-auto max-w-5xl px-4 py-10">
         <h1 className="mb-4 text-2xl font-semibold text-gray-900">Emergency Requests</h1>
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 grid gap-2 md:grid-cols-3">
           <input
             className="h-10 rounded border px-3"
             placeholder="Filter by pincode"
             value={pincode}
             onChange={(e) => setPincode(e.target.value)}
           />
+          <input
+            className="h-10 rounded border px-3"
+            placeholder="Filter by blood group (e.g., O+)"
+            value={bloodGroup}
+            onChange={(e) => setBloodGroup(e.target.value)}
+          />
+          <button
+            className="h-10 rounded bg-gray-200 px-3 text-sm"
+            onClick={() => {
+              setPincode("")
+              setBloodGroup("")
+            }}
+          >
+            Clear
+          </button>
         </div>
         <div className="grid gap-4">
           {list.length === 0 && <p className="text-sm text-gray-600">No open requests at the moment.</p>}
@@ -55,6 +76,7 @@ export default function DonorEmergency() {
                 <div>
                   <h3 className="font-medium text-gray-900">{r.bloodGroup}</h3>
                   <p className="text-sm text-gray-600">Pincode: {r.pincode}</p>
+                  <p className="text-xs text-gray-500">Expires: {new Date(r.expiresAt).toLocaleString()}</p>
                 </div>
                 <button
                   onClick={() => volunteer(r.id)}

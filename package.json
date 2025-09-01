@@ -6,6 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
+    "seed:indexes": "node scripts/create-indexes.js",
+    "seed:indexes:v2": "node scripts/create-indexes.v2.js",
     "start": "next start"
   },
   "dependencies": {

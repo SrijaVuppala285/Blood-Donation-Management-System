@@ -13,14 +13,18 @@ export default function FindDonorsPage() {
     if (raw) setAuth(JSON.parse(raw))
   }, [])
 
-  const url =
-    bloodGroup && pincode
-      ? `/api/users/search?bloodGroup=${encodeURIComponent(bloodGroup)}&pincode=${encodeURIComponent(pincode)}`
-      : null
+  const url = (() => {
+    const params = new URLSearchParams()
+    if (bloodGroup) params.set("bloodGroup", bloodGroup)
+    if (pincode) params.set("pincode", pincode)
+    const qs = params.toString()
+    return `/api/users/search${qs ? `?${qs}` : ""}`
+  })()
+
   const { data } = useSWR(
-    url,
+    auth?.token ? url : null,
     (u: string) => fetch(u, { headers: { Authorization: `Bearer ${auth?.token || ""}` } }).then((r) => r.json()),
-    { keepPreviousData: true },
+    { keepPreviousData: true, refreshInterval: 15000 },
   )
   const donors = useMemo(() => data?.donors || [], [data])
 
@@ -42,9 +46,18 @@ export default function FindDonorsPage() {
             value={pincode}
             onChange={(e) => setPincode(e.target.value)}
           />
+          <button
+            className="h-10 rounded bg-gray-200 px-3 text-sm"
+            onClick={() => {
+              setBloodGroup("")
+              setPincode("")
+            }}
+          >
+            Clear
+          </button>
         </div>
         <div className="grid gap-4">
-          {donors.length === 0 && <p className="text-sm text-gray-600">Enter filters to search donors.</p>}
+          {donors.length === 0 && <p className="text-sm text-gray-600">No donors found.</p>}
           {donors.map((d: any) => (
             <div key={d.id} className="rounded border bg-white p-4">
               <h3 className="font-medium text-gray-900">{d.name}</h3>

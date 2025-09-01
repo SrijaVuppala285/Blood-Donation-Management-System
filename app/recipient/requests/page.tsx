@@ -18,9 +18,13 @@ export default function RecipientRequestsPage() {
     if (raw) setAuth(JSON.parse(raw))
   }, [])
 
-  const { data, mutate } = useSWR(auth?.token ? "/api/requests" : null, (u) => fetcherWithAuth(u, auth?.token || ""), {
-    refreshInterval: 8000,
-  })
+  const { data, mutate } = useSWR(
+    auth?.token ? "/api/requests?mine=1" : null,
+    (u) => fetcherWithAuth(u, auth?.token || ""),
+    {
+      refreshInterval: 8000,
+    },
+  )
   const list = useMemo(() => data?.requests || [], [data])
 
   async function createRequest(e: React.FormEvent) {
@@ -38,6 +42,21 @@ export default function RecipientRequestsPage() {
     } else {
       const d = await res.json()
       alert(d.error || "Failed")
+    }
+  }
+
+  async function decide(id: string, decision: "accept" | "reject") {
+    if (!auth?.token) return alert("Please login")
+    const res = await fetch(`/api/requests/${id}/decision`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ decision }),
+    })
+    if (res.ok) {
+      mutate()
+    } else {
+      const d = await res.json().catch(() => ({}))
+      alert(d.error || "Action failed")
     }
   }
 
@@ -76,14 +95,41 @@ export default function RecipientRequestsPage() {
           {list.length === 0 && <p className="text-sm text-gray-600">No requests yet.</p>}
           {list.map((r: any) => (
             <div key={r.id} className="rounded border bg-white p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="font-medium text-gray-900">{r.bloodGroup}</h3>
                   <p className="text-sm text-gray-600">
                     Pincode: {r.pincode} • Status: {r.status}
                   </p>
+                  <span className="text-xs text-gray-500">Expires: {new Date(r.expiresAt).toLocaleString()}</span>
+                  {r.donor && (
+                    <div className="mt-2 rounded border bg-gray-50 p-2 text-sm text-gray-700">
+                      <p className="font-medium">Volunteer details</p>
+                      <p>
+                        {r.donor.name} • {r.donor.bloodGroup}
+                      </p>
+                      <p>
+                        {r.donor.mobile} • {r.donor.email} • {r.donor.pincode}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs text-gray-500">Expires: {new Date(r.expiresAt).toLocaleString()}</span>
+                {r.status === "pending" && (
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <button
+                      onClick={() => decide(r.id, "accept")}
+                      className="rounded bg-emerald-600 px-3 py-1.5 text-white hover:bg-emerald-700"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => decide(r.id, "reject")}
+                      className="rounded bg-gray-200 px-3 py-1.5 text-gray-800"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

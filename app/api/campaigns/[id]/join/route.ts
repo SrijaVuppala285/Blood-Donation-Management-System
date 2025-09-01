@@ -11,12 +11,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const campaigns = db.collection<Campaign>("campaigns")
   const users = db.collection<User>("users")
   const notifications = db.collection<Notification>("notifications")
+  const joins = db.collection("campaign_joins")
 
   const campaign = await campaigns.findOne({ _id: new ObjectId(params.id) })
   if (!campaign) return Response.json({ error: "Campaign not found" }, { status: 404 })
 
-  // For MVP, simply award points if donor
-  if (auth.user.role === "donor") {
+  // prevent duplicate joins; award points only once
+  const res = await joins.updateOne(
+    { campaignId: String(campaign._id), userId: auth.user.sub },
+    { $setOnInsert: { campaignId: String(campaign._id), userId: auth.user.sub, createdAt: new Date() } },
+    { upsert: true },
+  )
+  const newlyJoined = (res.upsertedId as any) || res.matchedCount === 0
+  if (newlyJoined) {
     await users.updateOne({ _id: new ObjectId(auth.user.sub) }, { $inc: { points: campaign.points } })
   }
 
@@ -28,5 +35,5 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     createdAt: new Date(),
   })
 
-  return Response.json({ ok: true })
+  return Response.json({ ok: true, newlyJoined: Boolean(newlyJoined) })
 }

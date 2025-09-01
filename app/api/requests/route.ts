@@ -3,11 +3,11 @@ import { z } from "zod"
 import { getDb } from "@/lib/mongodb"
 import { requireAuth } from "@/lib/api-helpers"
 import type { RequestDoc, Notification, User } from "@/types"
+import { ObjectId } from "mongodb"
 
 const createSchema = z.object({
   bloodGroup: z.string(),
   pincode: z.string(),
-  // expires in minutes from now
   expiresInMins: z
     .number()
     .min(5)
@@ -17,11 +17,38 @@ const createSchema = z.object({
 export async function GET(req: NextRequest) {
   const db = await getDb()
   const requests = db.collection<RequestDoc>("requests")
+  const users = db.collection<User>("users")
   const { searchParams } = new URL(req.url)
   const pincode = searchParams.get("pincode") || undefined
+  const bloodGroup = searchParams.get("bloodGroup") || undefined
+  const mine = searchParams.get("mine") === "1"
   const now = new Date()
+
+  if (mine) {
+    const auth = requireAuth(req, ["recipient"])
+    if ("error" in auth) return Response.json({ error: auth.error }, { status: auth.status })
+    const mineQuery: any = { recipientId: auth.user.sub }
+    const docs = await requests.find(mineQuery).sort({ createdAt: -1 }).limit(50).toArray()
+
+    // enrich donor details if any
+    const result = []
+    for (const r of docs) {
+      let donor: any = null
+      if (r.donorId) {
+        const d = await users.findOne(
+          { _id: new ObjectId(r.donorId as any) },
+          { projection: { name: 1, email: 1, mobile: 1, bloodGroup: 1, pincode: 1 } },
+        )
+        if (d) donor = { id: String(d._id), ...d }
+      }
+      result.push({ ...r, id: String(r._id), donor })
+    }
+    return Response.json({ requests: result })
+  }
+
   const query: any = { status: "open", expiresAt: { $gt: now } }
   if (pincode) query.pincode = pincode
+  if (bloodGroup) query.bloodGroup = bloodGroup
   const data = await requests.find(query).sort({ createdAt: -1 }).limit(50).toArray()
   return Response.json({ requests: data.map((r) => ({ ...r, id: String(r._id) })) })
 }
@@ -52,9 +79,7 @@ export async function POST(req: NextRequest) {
   }
   const { insertedId } = await requests.insertOne(doc)
 
-  // Notify donors in same pincode and bloodGroup
   const targetDonors = await users.find({ role: "donor", pincode, bloodGroup }).project({ _id: 1 }).toArray()
-
   if (targetDonors.length) {
     const notifs = targetDonors.map((d) => ({
       userId: String(d._id),

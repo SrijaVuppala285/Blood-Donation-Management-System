@@ -5,8 +5,8 @@ import { requireAuth } from "@/lib/api-helpers"
 import type { User } from "@/types"
 
 const schema = z.object({
-  bloodGroup: z.string(),
-  pincode: z.string(),
+  bloodGroup: z.string().optional(),
+  pincode: z.string().optional(),
 })
 
 export async function GET(req: NextRequest) {
@@ -21,10 +21,15 @@ export async function GET(req: NextRequest) {
 
   const db = await getDb()
   const users = db.collection<User>("users")
-  const donors = await users
-    .find({ role: "donor", bloodGroup: params.data.bloodGroup, pincode: params.data.pincode })
-    .project({ passwordHash: 0 })
-    .limit(50)
-    .toArray()
-  return Response.json({ donors: donors.map((d) => ({ ...d, id: String(d._id) })) })
+
+  // Build query dynamically; show all donors if no filters provided
+  const query: any = { role: "donor" }
+  if (params.data.bloodGroup) query.bloodGroup = params.data.bloodGroup
+  if (params.data.pincode) query.pincode = params.data.pincode
+
+  const donors = await users.find(query).project({ passwordHash: 0 }).limit(100).toArray()
+
+  return Response.json({
+    donors: donors.map((d) => ({ ...d, id: String(d._id) })),
+  })
 }

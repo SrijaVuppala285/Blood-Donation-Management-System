@@ -19,7 +19,7 @@ export type RequestDoc = {
   _id?: any
   bloodGroup: string
   pincode: string
-  status: "open" | "accepted" | "expired"
+  status: "open" | "pending" | "accepted" | "expired"
   recipientId: string
   donorId?: string | null
   expiresAt: Date
@@ -33,6 +33,9 @@ export type Campaign = {
   date: string // ISO date
   location: string
   points: number
+  imageUrl?: string
+  creatorId: string
+  endsAt?: Date
   createdAt: Date
   updatedAt: Date
 }
