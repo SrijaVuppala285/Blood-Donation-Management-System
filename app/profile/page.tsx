@@ -20,9 +20,9 @@ export default function ProfilePage() {
         {!user ? (
           <p className="text-gray-600">Please login to view your profile.</p>
         ) : (
-          <div className="rounded-lg border bg-white p-5">
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
-              <div>
+              <div className="space-y-1">
                 <p className="text-gray-800">
                   <span className="font-medium">Name:</span> {user.name}
                 </p>
@@ -38,7 +38,7 @@ export default function ProfilePage() {
                 <div className="text-xl font-semibold">{user.points}</div>
               </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-5">
               <p className="font-medium text-gray-800">Badges</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(user.badges || []).length === 0 && <span className="text-sm text-gray-500">No badges yet.</span>}

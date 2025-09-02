@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import Image from "next/image"
 import { useEffect, useState } from "react"
 
 type UserLite = { id: string; name: string; email: string; role: "donor" | "recipient" } | null
@@ -19,9 +20,13 @@ export default function Navbar() {
 
   return (
     <header className="border-b bg-white">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-semibold text-red-600">
-          Sahithi
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        {" "}
+        {/* widen container */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="BloodConnect logo" width={28} height={28} className="h-7 w-7" />{" "}
+          {/* add logo image */}
+          <span className="text-base font-semibold text-red-600">BloodConnect</span> {/* brand rename */}
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/campaigns" className="text-sm text-gray-700 hover:text-red-600">

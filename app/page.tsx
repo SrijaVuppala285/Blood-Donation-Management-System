@@ -1,18 +1,19 @@
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import Link from "next/link"
+import Image from "next/image"
 
 export default async function HomePage() {
   return (
     <main>
       <Navbar />
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid gap-10 md:grid-cols-2 md:items-center">
-          <div className="space-y-5">
-            <h1 className="text-balance text-4xl font-semibold tracking-tight text-gray-900">
+      <section className="bg-white">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2">
+          <div className="space-y-6">
+            <h1 className="text-balance text-4xl font-semibold tracking-tight text-gray-900 md:text-5xl">
               Donate Blood. Save Lives. Build Community.
             </h1>
-            <p className="text-pretty text-gray-600 leading-relaxed">
+            <p className="text-pretty leading-relaxed text-gray-600">
               Join time-bound campaigns, respond to emergency requests, and earn recognition for your impact.
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -21,19 +22,21 @@ export default async function HomePage() {
               </Link>
               <Link
                 href="/campaigns"
-                className="rounded border px-4 py-2 text-gray-800 hover:border-red-600 hover:text-red-600"
+                className="rounded border px-4 py-2 text-gray-800 hover:border-red-600 hover:text-red-700"
               >
                 Explore Campaigns
               </Link>
             </div>
           </div>
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
-            <h3 className="mb-2 font-medium text-gray-900">How it works</h3>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Create or join campaigns and earn points</li>
-              <li>• Recipients post emergency requests with expiry times</li>
-              <li>• Donors volunteer and get notified instantly</li>
-            </ul>
+          <div className="relative">
+            <Image
+              src="/hero-blood-donation.png"
+              alt="Volunteers participating in a blood donation campaign"
+              className="rounded-lg border shadow-sm"
+              width={960}
+              height={720}
+              priority
+            />
           </div>
         </div>
       </section>
